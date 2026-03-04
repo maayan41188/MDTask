@@ -1,0 +1,23 @@
+Java: 
+add: 	101::Name=<taskName>&&Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<YEAR_MONTH_DAYS_HOURS_MINUTES>&&Deadline=<YEAR_MONTH_DAYS_HOURS_MINUTES>
+
+remove: 
+	102::ID=<task_id>
+set complete: 	
+	103::ID=<task_id>
+get data:
+	104:ID=<task_id>
+
+C++:
+add: 
+	200::ID=<task_id>
+	301::Error=<ErrorMessage>     |      possible error messages: "Deadline is in the past", "Negative priority not allowed"
+remove:
+	200::ID=<task_id>
+	302::Error=<ErrorMessage>     |      possible error messages: "task does not exist"
+set complete: 	
+	200::complete
+	303::Error=<ErrorMessage>     |      possible error messages: "task does not exist"
+get data:
+	200::Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<YEAR_MONTH_DAYS_HOURS_MINUTES>&&Deadline=<YEAR_MONTH_DAYS_HOURS_MINUTES>
+	304::Error=<ErrorMessage>     |      possible error messages: "task does not exist"
