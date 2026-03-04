@@ -4,7 +4,7 @@ add: 	101::Name=<taskName>&&Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=
 remove: 
 	102::ID=<task_id>
 set complete: 	
-	103::ID=<task_id>
+	103::ID=<task_id>&&Set=<true/false>
 get data:
 	104:ID=<task_id>
 

@@ -6,10 +6,12 @@
 class Task
 {
 private:
+	unsigned int taskID;
 	std::string taskName;
 	std::string taskDesc;
-	unsigned int taskID;
 	unsigned int taskPriority;
+	unsigned int unixCreation;
+	unsigned int unixDueDate;
 public:
 	Task() = default;
 	~Task() = default;
