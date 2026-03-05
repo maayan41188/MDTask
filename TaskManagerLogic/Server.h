@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include "sqlite3.h"
+#include "Helper.h"
 #include <string>
 
 
@@ -16,12 +17,13 @@ public:
 	void serve(int port);
 
 private:
-	bool getSQL(sqlite3*& DB);
+	void clientHandler(SOCKET clientSock);
+	void getSQL();
 	void acceptClient();
-
-	void clientHandler(SOCKET clientSocket);
+	static int callback(void* data, int argc, char** argv, char** azColName);
+	void addTask(SOCKET clientSocket);
+	static int countResults(void* data, int argc, char** argv, char** azColName);
 	
-	
-	
+	sqlite3* db;
 	SOCKET _serverSocket;
 };

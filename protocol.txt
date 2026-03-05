@@ -1,6 +1,41 @@
 Java: 
-add: 	101::Name=<taskName>&&Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<YEAR_MONTH_DAYS_HOURS_MINUTES>&&Deadline=<YEAR_MONTH_DAYS_HOURS_MINUTES>
+add: 
+	101<name_len, 2b><name><desc_len, 4b><desc><priority, 1b><date_added, 10b><deadline, 10b>
+remove: 
+	102<ID, 3b>
+set complete: 	
+	103<ID, 3b><true/false, 1b>
+get data:
+	104<ID, 3b>
 
+C++:
+add: 
+	200<ID, 5b>
+	301<Error_len><ErrorMessage>     |      possible error messages: "Deadline is in the past", "Negative priority not allowed"
+remove:
+	200<ID, 3b>
+	302<Error_len><ErrorMessage>     |      possible error messages: "task does not exist"
+set complete: 	
+	200
+	303<Error_len><ErrorMessage>     |      possible error messages: "task does not exist"
+get data:
+	200<desc_len, 4b><task_desc><priority, 1b><date_added, 10b><deadline, 10b>
+	304<Error_len><ErrorMessage>     |      possible error messages: "task does not exist"
+
+
+
+
+
+
+
+
+
+
+
+
+
+Java: 
+add: 	101::Name=<taskName>&&Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<UNIX_TIME>&&Deadline=<UNIX_TIME>
 remove: 
 	102::ID=<task_id>
 set complete: 	
@@ -19,5 +54,5 @@ set complete:
 	200::complete
 	303::Error=<ErrorMessage>     |      possible error messages: "task does not exist"
 get data:
-	200::Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<YEAR_MONTH_DAYS_HOURS_MINUTES>&&Deadline=<YEAR_MONTH_DAYS_HOURS_MINUTES>
+	200::Desc=<taskDesc>&&Priority=<taskPriority>&&DateAdded=<UNIX_TIME>&&Deadline=<UNIX_TIME>
 	304::Error=<ErrorMessage>     |      possible error messages: "task does not exist"

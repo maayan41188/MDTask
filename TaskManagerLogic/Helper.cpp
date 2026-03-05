@@ -61,11 +61,19 @@ char* Helper::getPartFromSocket(SOCKET sc, int bytesNum, int flags)
 
 	char* data = new char[bytesNum + 1];
 	int res = recv(sc, data, bytesNum, flags);
+	//std::cout << "recv returned: " << res << std::endl;
 
-	if (res == INVALID_SOCKET)
+	/*if (res == INVALID_SOCKET)
 	{
 		std::string s = "Error while recieving from socket: ";
 		s += std::to_string(sc);
+		throw std::exception(s.c_str());
+	}*/
+
+	if (res == SOCKET_ERROR)
+	{
+		std::string s = "Error while recieving from socket: ";
+		s += std::to_string(WSAGetLastError());
 		throw std::exception(s.c_str());
 	}
 

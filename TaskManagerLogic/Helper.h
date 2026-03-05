@@ -10,21 +10,35 @@
 #include <sstream>
 
 
-enum RecieveType : byte
+enum RecieveType
 {
 	ADD = 101,
 	REMOVE = 102,
 	SET_COMPLETE = 103,
 	GET_DATA = 104,
+	EXIT = 105
 };
 
-enum SendType : byte
+enum SendType
 {
 	SUCCESS = 200,
 	ADD_ERROR = 301,
 	REMOVE_ERROR = 302,
 	SET_COMPLETE_ERROR = 303,
-	GET_DATA_ERROR = 304,
+	GET_DATA_ERROR = 304
+};
+
+enum Lengths
+{
+	CODE = 3,
+	NAME_LEN = 2,
+	DESC_LEN = 4,
+	PRIORITY = 1,
+	ID_LEN = 5,
+	DATE_ADDED = 10,
+	DEADLINE = 10,
+	SET_COMPLETE_LEN= 1,
+	ERROR_MESSAGE_Len = 2
 };
 
 class Helper

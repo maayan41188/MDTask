@@ -11,6 +11,8 @@ Server::Server()
 	{
 		throw std::exception(__FUNCTION__ " - socket");
 	}
+
+    getSQL();
 }
 
 Server::~Server()
@@ -58,71 +60,207 @@ void Server::acceptClient()
 
 	std::cout << "Client accepted. Server and client can speak" << std::endl;
 	// the function that handle the conversation with the client
-    clientHandler(_serverSocket);
+    clientHandler(client_socket);
 }
 
-void Server::clientHandler(SOCKET clientSocket)
+void Server::clientHandler(SOCKET clientSock)
 {
-    sqlite3* db;
-    if (!getSQL(db))
+    
+    
+
+
+    /*std::string query = "SELECT * FROM TASK;";
+
+    std::cout << "STATE OF TABLE BEFORE INSERT" << std::endl;
+
+    sqlite3_exec(db, query.c_str(), callback, NULL, NULL);
+
+    std::string sql("INSERT INTO TASK VALUES(1, 't1', 'task1', 1, 900, 1000);"
+        "INSERT INTO TASK VALUES(2, 't2', 'task2', 2, 900, 300);"
+        "INSERT INTO TASK VALUES(3, 't3', 'task3', 3, 90, 990);");
+
+    exit = sqlite3_exec(db, sql.c_str(), NULL, 0, &messaggeError);
+    if (exit != SQLITE_OK)
     {
-        return;
+        std::cout << "Error Insert" << std::endl;
+        sqlite3_free(messaggeError);
     }
+    else
+        std::cout << "Records created Successfully!" << std::endl;
 
+    std::cout << "STATE OF TABLE AFTER INSERT" << std::endl;
 
+    sqlite3_exec(db, query.c_str(), callback, NULL, NULL);
+
+    sql = "DELETE FROM TASK WHERE ID = 2;";
+    exit = sqlite3_exec(db, sql.c_str(), NULL, 0, &messaggeError);
+    if (exit != SQLITE_OK) {
+        std::cerr << "Error DELETE" << std::endl;
+        sqlite3_free(messaggeError);
+    }
+    else
+        std::cout << "Record deleted Successfully!" << std::endl;
+
+    std::cout << "STATE OF TABLE AFTER DELETE OF ELEMENT" << std::endl;
+    sqlite3_exec(db, query.c_str(), callback, NULL, NULL);*/
+
+    int code = 0;
     try
     {
+        while (true)
+        {
+            code = Helper::getMessageTypeCode(clientSock);
+            std::cout << code << std::endl;
 
+            switch (code)
+            {
+            case ADD:
+                addTask(clientSock);
+                break;
+            case REMOVE:
+
+                break;
+            case SET_COMPLETE:
+
+                break;
+            case GET_DATA:
+
+                break;
+            case EXIT:
+                break;
+            default:
+                throw std::exception("Invalid code");
+            }
+
+            if (code == EXIT)
+            {
+                break;
+            }
+
+            /*std::string send = std::to_string(code + 1);
+            Helper::sendData(clientSock, send);*/
+        }
     }
     catch (const std::exception& e)
     {
-
+        std::cout << e.what() << std::endl;
     }
 
     sqlite3_close(db);
 }
 
 
-bool Server::getSQL(sqlite3*& db)
+void Server::addTask(SOCKET clientSocket)
+{
+    int len = Helper::getIntPartFromSocket(clientSocket, NAME_LEN);
+    std::string name = Helper::getStringPartFromSocket(clientSocket, len);
+    
+    len = Helper::getIntPartFromSocket(clientSocket, DESC_LEN);
+    std::string desc = Helper::getStringPartFromSocket(clientSocket, len);
+
+    int priority = Helper::getIntPartFromSocket(clientSocket, PRIORITY);
+
+    /*while (count != 0)
+    {
+        std::string str = "SELECT * FROM TASK WHERE ID = " + std::to_string(id);
+        int exit = sqlite3_exec(db, str.c_str(), Server::countQueries, &count, &messageError);
+        if (exit != SQLITE_OK)
+        {
+            std::string error = std::string("Error Create/Open Table: ") + std::string(messageError);
+            sqlite3_free(messageError);
+            throw std::exception(error.c_str());
+        }
+        id++;
+    }*/
+
+    /*std::string str = "SELECT MAX(ID) FROM TASK";
+    int exit = sqlite3_exec(db, str.c_str(), Server::countResults, &count, &messageError);
+    if (exit != SQLITE_OK)
+    {
+        std::string error = std::string("Error Create/Open Table: ") + std::string(messageError);
+        sqlite3_free(messageError);
+        throw std::exception(error.c_str());
+    }*/
+    /*std::string sql("INSERT INTO TASK (ID, NAME, DESCRIPTION, PRIORITY, COMPLETE, CREATIONDATE, DUEDATE) VALUES("+ std::to_string(id) +", '" + name + "', '" + desc + "', " + std::to_string(priority) + ", " +  std::to_string(0) + ", 0, 0); ");
+    int exit = sqlite3_exec(db, sql.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK)
+    {
+        std::string error = std::string("Error during insert: ") + std::string(messageError);
+        sqlite3_free(messageError);
+        throw std::exception(error.c_str());
+    }*/
+
+    std::string sql = "INSERT INTO TASK (NAME, DESCRIPTION, PRIORITY, COMPLETE, CREATIONDATE, DUEDATE) VALUES ('"
+        + name + "', '"
+        + desc + "', "
+        + std::to_string(priority) + ", 0, 0, 0);";
+
+    char* messageError = nullptr;
+    int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &messageError);
+    if (exit != SQLITE_OK)
+    {
+        std::string error = std::string("Error during insert: ") + std::string(messageError);
+        sqlite3_free(messageError);
+        throw std::exception(error.c_str());
+    }
+
+    sqlite3_int64 id = sqlite3_last_insert_rowid(db);
+    if (id > 99999)
+    {
+        throw std::exception("ID exceeded 99999.");
+    }
+    std::string s = "200" + Helper::getPaddedNumber(id, 5);
+    Helper::sendData(clientSocket, s);
+}
+
+int Server::countResults(void* data, int argc, char** argv, char** azColName)
+{
+    (*(int*)data)++;
+    return 0;
+}
+
+void Server::getSQL()
 {
     int exit = sqlite3_open("C:\\Users\\Cyber_Magshimim\\Desktop\\Magshimim\\year2\\Tasks\\MDTask\\TaskDataBase.db", &db);
 
     if (exit)
     {
-        std::cerr << "Error open DB " << sqlite3_errmsg(db) << std::endl;
-        return false;
+        /*std::cout << "Error open DB " << sqlite3_errmsg(db) << std::endl;
+        return false;*/
+        std::string error = std::string("Error opening DB: ") + std::string(sqlite3_errmsg(db));
+        throw std::exception(error.c_str());
     }
 
     std::string sql = "CREATE TABLE IF NOT EXISTS TASK("
-        "ID INT PRIMARY KEY     NOT NULL, "
+        "ID INTEGER PRIMARY KEY     , "
         "NAME           TEXT    NOT NULL, "
-        "DESC          TEXT     NOT NULL, "
+        "DESCRIPTION          TEXT     NOT NULL, "
         "PRIORITY            INT     NOT NULL, "
-        "CREATIONDATE        CHAR(50), "
-        "DUEDATE         REAL );";
-    char* messaggeError;
-    exit = sqlite3_exec(db, sql.c_str(), NULL, 0, &messaggeError);
+        "COMPLETE            INT     NOT NULL, "
+        "CREATIONDATE        INT, "
+        "DUEDATE         INT);";
+    char* messageError;
+    exit = sqlite3_exec(db, sql.c_str(), NULL, 0, &messageError);
 
     if (exit != SQLITE_OK)
     {
-        std::cout << "Error Create/Open Table" << std::endl;
-        std::cout << messaggeError << std::endl;
-        sqlite3_free(messaggeError);
-        return false;
+        sqlite3_free(messageError);
+        std::string error = std::string("Error Create/Open Table: ") + std::string(messageError);
+        throw std::exception(error.c_str());
     }
-    return true;
 }
 
-int callback(void* data, int argc, char** argv, char** azColName)
+int Server::callback(void* data, int argc, char** argv, char** azColName)
 {
     int i;
-    fprintf(stderr, "%s: ", (const char*)data);
+    std::cout << (const char*)data << std::endl;
 
     for (i = 0; i < argc; i++)
     {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        std::cout << azColName[i] << " = " << (argv[i] ? argv[i] : "NULL") << std::endl;
     }
 
     printf("\n");
     return 0;
 }
+
