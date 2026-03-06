@@ -7,6 +7,8 @@ set complete:
 	103<ID, 3b><true/false, 1b>
 get data:
 	104<ID, 3b>
+exit:
+	105
 
 C++:
 add: 

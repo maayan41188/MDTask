@@ -23,6 +23,8 @@ private:
 	static int callback(void* data, int argc, char** argv, char** azColName);
 	void addTask(SOCKET clientSocket);
 	static int countResults(void* data, int argc, char** argv, char** azColName);
+	void getData(SOCKET clientSocket);
+	static int getTaskData(void* data, int argc, char** argv, char** colName);
 	
 	sqlite3* db;
 	SOCKET _serverSocket;

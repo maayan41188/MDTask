@@ -124,9 +124,10 @@ void Server::clientHandler(SOCKET clientSock)
 
                 break;
             case GET_DATA:
-
+                getData(clientSock);
                 break;
             case EXIT:
+                std::cout << "Client has disconnected." << std::endl;
                 break;
             default:
                 throw std::exception("Invalid code");
@@ -159,7 +160,7 @@ void Server::addTask(SOCKET clientSocket)
     std::string desc = Helper::getStringPartFromSocket(clientSocket, len);
 
     int priority = Helper::getIntPartFromSocket(clientSocket, PRIORITY);
-
+    std::cout << "Name: " << name << ", Desc: " << desc << ", Priority: " << std::to_string(priority) << std::endl;
     /*while (count != 0)
     {
         std::string str = "SELECT * FROM TASK WHERE ID = " + std::to_string(id);
@@ -207,7 +208,7 @@ void Server::addTask(SOCKET clientSocket)
     sqlite3_int64 id = sqlite3_last_insert_rowid(db);
     if (id > 99999)
     {
-        throw std::exception("ID exceeded 99999.");
+        throw std::exception("ID exceeded 99999");
     }
     std::string s = "200" + Helper::getPaddedNumber(id, 5);
     Helper::sendData(clientSocket, s);
@@ -216,6 +217,30 @@ void Server::addTask(SOCKET clientSocket)
 int Server::countResults(void* data, int argc, char** argv, char** azColName)
 {
     (*(int*)data)++;
+    return 0;
+}
+
+void Server::getData(SOCKET clientSocket)
+{
+    int id = Helper::getIntPartFromSocket(clientSocket, ID_LEN);
+    std::cout << "ID: " << std::to_string(id) << std::endl;
+
+    std::string sql = "SELECT DESCRIPTION, PRIORITY FROM TASK WHERE ID = " + std::to_string(id);
+    char* messageError = nullptr;
+    int exit = sqlite3_exec(db, sql.c_str(), Server::getTaskData, &clientSocket, &messageError);
+    if (exit != SQLITE_OK)
+    {
+        std::string error = std::string("Error during data gather: ") + std::string(messageError); //add sending error message to client
+        sqlite3_free(messageError);
+        throw std::exception(error.c_str());
+    }
+}
+
+int Server::getTaskData(void* data, int argc, char** argv, char** colName)
+{
+    std::string s = "200" + Helper::getPaddedNumber(std::strlen(argv[0]), DESC_LEN) + std::string(argv[0]) + std::string(argv[1]);
+    std::cout << "Task Data: " << s << std::endl;
+    Helper::sendData((*(SOCKET*)data), s);
     return 0;
 }
 
@@ -259,8 +284,6 @@ int Server::callback(void* data, int argc, char** argv, char** azColName)
     {
         std::cout << azColName[i] << " = " << (argv[i] ? argv[i] : "NULL") << std::endl;
     }
-
-    printf("\n");
     return 0;
 }
 
